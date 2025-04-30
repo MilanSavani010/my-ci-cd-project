@@ -1,15 +1,12 @@
 {
-  "name": "my-ci-cd-project",
+  "name": "my-ci-cd-app",
   "version": "1.0.0",
+  "description": "A simple Node.js app for CI/CD pipeline with Docker integration",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "start": "node index.js",
+    "build": "echo \"No build step necessary\""
   },
-  "keywords": [],
-  "author": "",
-  "license": "ISC",
-  "directories": {
-    "doc": "docs"
-  },
-  "description": ""
+  "author": "Milan Savani",
+  "license": "MIT"
 }
