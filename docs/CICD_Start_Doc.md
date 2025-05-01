@@ -85,6 +85,7 @@ git push -u origin main
 ---
 # Step 3: Setup Docker Integration
 ### 1. Create a Dockerfile
+---
 **Inside your project root folder(`my-ci-cd-project`), create a file named exactly:**
 ```nginx
 Dockerfile
@@ -117,6 +118,7 @@ CMD ["npm","start"]
 
 ```
 ### 2. Test Docker Build Locally 
+---
 **Open your terminal (Powershell, Git Bash) inside your project folder and run:**
 
 ```Bash
@@ -134,8 +136,10 @@ docker run -p 3000:3000 my-ci-cd-app
 
 Visit `http://localhost:3000` to see your app running(if your app has a server).
 
+---
 # Step 4: Configure Github Actions for CI/CD
 ### 1. Create Workflow Folder&File
+---
 in your project folder:
 ```Bash
 mkdir -p .github/workflows
@@ -147,6 +151,7 @@ ci.yml
 ```
 
 ### 2. Content of `ci.yml`
+---
 ```yaml
 name: CI Pipeline - Node.js with Docker
 
@@ -184,3 +189,137 @@ jobs:
  - `setup-node` - Install Node.js 18.x.
  - `npm install` - Installs packages from your `package.json`.
  - `docker build` - Uses the Dockerfile to build your image.
+
+---
+# Step 5: Push Docker Images to Docker Hub (CI/CD Integration)
+  
+### 1. Prerequisites
+---
+Create a Docker Hub account if you haven't already. 
+Create a Docker Hub repository.
+
+### 2. Store Docker Hub Credentials in GitHub Secrets
+---
+1. Go to your GitHub repo -> Settings -> Secrets and variables -> Actions -> new repository secret 
+2. Add these secrets:
+
+|Name|Value
+|-----|-----|
+|DOCKER_USERNAME| Your Docker Hub username|
+|DOCKER_PASSWORD| Your Docker Hub password|
+
+### 3. Update GitHub Actions Workflow(`ci.yml`)
+---
+
+```yml
+name: CI/CD Pipeline - Node.js with Docker Push
+
+on:
+  push:
+    branches: [ "main" ]
+
+jobs:
+  build-and-push:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+
+      - name: Install dependencies
+        run: npm install
+
+      - name: Run build
+        run: npm run build
+
+      - name: Log in to Docker Hub
+        run: echo "${{ secrets.DOCKER_PASSWORD }}" | docker login -u "${{ secrets.DOCKER_USERNAME }}" --password-stdin
+
+      - name: Build Docker image
+        run: docker build -t ${{ secrets.DOCKER_USERNAME }}/my-ci-cd-app:latest .
+
+      - name: Push Docker image
+        run: docker push ${{ secrets.DOCKER_USERNAME }}/my-ci-cd-app:latest
+
+```
+
+---
+# Step 6: Add Automated Test Stage to CI
+
+### 1. Install Jest (or your preffered testing framework)
+---
+**Run this locally in your Node.js project:**
+```Bash
+npm install --save-dev jest
+```
+
+**Then, add this to your `package.json`**:
+```json
+"scripts": {
+  "start": "node index.js",
+  "build": "echo \"No build step necessary\"",
+  "test": "jest"
+}
+```
+
+### 2. Add a Basic Test File 
+---
+**Create a folder called `tests/`, and inside it a file called `app.test.js`**:
+
+```javascript
+// tests/app.test.js
+
+test('Sample test: 2 + 2 = 4', () => {
+  expect(2 + 2).toBe(4);
+});
+```
+**You can later write tests for your actual business logic here.**
+
+### 3. update GitHub Actions Workflow to Include Tests
+---
+**Update your `.github/workflows/ci.yml` to include the test step:**
+
+```yml
+name: CI/CD Pipeline - Node.js with Docker Push
+
+on:
+  push:
+    branches: [ "main" ]
+
+jobs:
+  build-and-push:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+
+      - name: Install dependencies
+        run: npm install
+
+      - name: Run build
+        run: npm run build
+      
+      - name: Run tests
+        run: npm test
+
+      - name: Log in to Docker Hub
+        run: echo "${{ secrets.DOCKER_PASSWORD }}" | docker login -u "${{ secrets.DOCKER_USERNAME }}" --password-stdin
+
+      - name: Build Docker image
+        run: docker build -t ${{ secrets.DOCKER_USERNAME }}/my-ci-cd-app:latest .
+
+      - name: Push Docker image
+        run: docker push ${{ secrets.DOCKER_USERNAME }}/my-ci-cd-app:latest
+
+```
