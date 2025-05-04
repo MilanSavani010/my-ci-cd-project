@@ -6,11 +6,19 @@
   "scripts": {
     "start": "node index.js",
     "build": "echo \"No build step necessary\"",
-    "test":"jest"
+    "test": "jest"
   },
   "author": "Milan Savani",
   "license": "MIT",
   "devDependencies": {
     "jest": "^29.7.0"
+  },
+  "directories": {
+    "doc": "docs",
+    "test": "tests"
+  },
+  "keywords": [],
+  "dependencies": {
+    "express": "^5.1.0"
   }
 }
