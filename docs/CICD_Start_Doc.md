@@ -323,3 +323,253 @@ jobs:
         run: docker push ${{ secrets.DOCKER_USERNAME }}/my-ci-cd-app:latest
 
 ```
+---
+# Step 7. Deployment Stage
+**Assumprtion:**
+You have access to remote **VM/Server** (can be DigitalOcean, AWS EC2, your own server) with:
+- Docker installed
+- SSH access enabled
+
+### 1. GitHub Secrets Needed
+---
+**Add these secrets to your GitHub repo(under Setting > Secrets and variables > Actions):**
+
+|Name|Value|
+|-----|----|
+| `HOST` | Server IP or domain (e.g. `192.168.1.50`)|
+|`USERNAME`| SSH username(e.g., `ubuntu`)|
+|`SSH_PRIVATE_KEY`| Paste your private SSH key (no password prompts)|
+
+**Generate SSH Key (if you don't have one yet)**
+
+Run this locally (and do not enter a passphrase):
+```Bash
+ssh-keygen -t rsa -b 4096 -c "deploy@ci-cd"
+```
+
+Then:
+- Add the public key(`~/.ssh/id_rsa.pub`) to the `~/.ssh/autorized_keys` of your server.
+- Paste the private key (`~/ssh/id_rsa`) into GitHub secret as `SSH_PRIVATE_KEY`.
+---
+### 2. Add Deploy job to `ci.yml`
+---
+**Extend your GitHub Actions workflow like this:**
+```yml
+name: CI/CD Pipeline - Node.js with Docker Push
+
+on:
+  push:
+    branches: [ "main" ]
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+
+      - name: Install dependencies
+        run: npm install
+
+      - name: Run build
+        run: npm run build
+      
+      - name: Run tests
+        run: npm test
+
+      - name: Log in to Docker Hub
+        run: echo "${{ secrets.DOCKER_PASSWORD }}" | docker login -u "${{ secrets.DOCKER_USERNAME }}" --password-stdin
+
+      - name: Build Docker image
+        run: docker build -t ${{ secrets.DOCKER_USERNAME }}/my-ci-cd-app:latest .
+
+      - name: Push Docker image
+        run: docker push ${{ secrets.DOCKER_USERNAME }}/my-ci-cd-app:latest
+
+      - name: Deploy to remote server via SSH
+        uses: appleboy/ssh-actions@v1.0.0
+        with: 
+          host: ${{ secrets.HOST }}
+          username: ${{ secrets.USERNAME }}
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+        script: | 
+        docker pull ${{ secrets.DOCKER_USERNAME }}/my-ci-cd-app:latest
+        docker stop my-ci-cd-app || true
+        docker rm my-ci-cd-app || true
+        docker run -d --name my-ci-cd-app -p 80:3000 ${{secrets.DOCKER_USERNAME}} //my-ci-cd-app:latest
+```
+
+**What this does:**
+- SSHs into your server
+- Pulls the latest Docker image from Docker Hub
+- Stops and removes old container
+- Runs the new container on port 80(which maps to port 3000 in app)
+
+---
+# Step 7 (optional): Deployment stage with Azure Cloud VM
+## 1 Set Up Azure VM (Linux) for Deployment
+**Prerequisites**
+- Azure for Students account
+- Azure CLI installed
+- SSH key pair (you can generate one below if not already)
+
+### 1.1: Login to Azure
+```Bash
+az login
+```
+
+### 1.2: Create SSH Key Pair (If not Already)
+```Bash
+ssh-keygen -t rsa -b 4096 -C "milan-azure-vm" -f ~/.ssh/milan_azure_vm
+```
+It will create:
+- `~/.ssh/milan_azure_vm` -> private key
+- `~/.ssh/milan_azure_vm.pub` -> public key
+We will use the public key when creating the VM.
+
+### 1.3: Create Resource Group
+```Bash
+az group create --name my-vm-rg --location westeurope
+```
+
+### 1.4: Create Virtual Machine 
+```Bash
+az vm create \
+ --resource-group my-vm-rg \
+ --name milan-node-vm \
+ --image Ubuntu2204 \
+ --admin-username azureuser \
+ --size Standard_B1s \
+ --authentication-type ssh \
+ --ssh-key-values ~/.ssh/milan_azure_vm.pub \
+ --public-ip-sku Standard
+```
+
+## 1.5: Open Required Ports (HTTP and SSH)
+```
+az vm -resource-group my-vm-rg --name milan-node-vm --port 22 --priority 100
+az vm -resource-group my-vm-rg --name milan-node-vm --port 80 --priority 200
+```
+
+<pre>--priority         : Rule priority, between 100 (highest priority) and 4096 (lowest priority).
+                     Must be unique for each rule in the collection.  Default: 900.</pre>
+
+## 1.6: Connect to the VM via SSH
+```Bash
+ssh -i ~/.ssh/milan_azure_vm azureuser@<public-ip>
+```
+
+**You can find the public IP using:**
+```Bash
+az vm show --resource-group my-vm-rg --name milan-node-vm -d --query publicIps -o tsv
+```
+
+### 1.7: Install Docker on the VM
+**Once SSH'ed into the VM:**
+```bash
+# Update packages
+sudo apt update && sudo apt upgrade -y
+
+# Install Docker
+curl -fsSL https://get.docker.com -o get-docker.sh
+sudo sh get-docker.sh
+
+# Allow current user to use Docker without sudo
+sudo usermod -aG docker $USER
+
+# Logout and reconnect to activate group change
+exit
+```
+
+Then reconnect:
+```Bash
+ssh -i ~/.ssh/milan_azure_vm azureuser@<public-ip>
+```
+
+Verify Docker:
+```Bash
+docker --version
+```
+
+## 2. CI/CD Setup to Deploy Dockerized Node.js App to Azure VM
+
+### 2.1: Add Secrets to GitHub
+Go to your GitHub repo -> Settings -> Secrets -> Actions -> New repository secret, and add the following:
+
+| Secret Name       | Value (example)                                                                      |
+| ----------------- | ------------------------------------------------------------------------------------ |
+| `HOST`            | The public IP of your Azure VM (get it via Azure CLI)                                |
+| `USERNAME`        | `azureuser` (or whatever you used during VM creation)                                |
+| `SSH_PRIVATE_KEY` | Contents of `~/.ssh/milan_azure_vm` (your private key, **not** `.pub`)               |
+| `DOCKER_USERNAME` | Your Docker Hub username                                                             |
+| `DOCKER_PASSWORD` | Your Docker Hub password or [access token](https://hub.docker.com/settings/security) |
+
+### 2.2: Add GitHub Actions Workflow 
+Create or update `.github/workflows/ci.yml`
+```yml
+name: CI/CD to Azure VM
+
+on:
+  push:
+    branches: [ "main" ]
+
+jobs:
+  build-test-deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+
+      - name: Install dependencies
+        run: npm install
+
+      - name: Run tests
+        run: npm test
+
+      - name: Login to Docker Hub
+        run: echo "${{ secrets.DOCKER_PASSWORD }}" | docker login -u "${{ secrets.DOCKER_USERNAME }}" --password-stdin
+
+      - name: Build Docker image
+        run: docker build -t ${{ secrets.DOCKER_USERNAME }}/my-ci-cd-app:latest .
+
+      - name: Push Docker image
+        run: docker push ${{ secrets.DOCKER_USERNAME }}/my-ci-cd-app:latest
+
+      - name: Deploy on Azure VM using SSH
+        uses: appleboy/ssh-action@v1.0.0
+        with:
+          host: ${{ secrets.HOST }}
+          username: ${{ secrets.USERNAME }}
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          script: |
+            docker pull ${{ secrets.DOCKER_USERNAME }}/my-ci-cd-app:latest
+            docker stop my-ci-cd-app || true
+            docker rm my-ci-cd-app || true
+            docker run -d --name my-ci-cd-app -p 80:3000 ${{ secrets.DOCKER_USERNAME }}/my-ci-cd-app:latest
+
+```
+
+### 2.3: Push to GitHub and Watch the Workflow
+When you push changes to `main` branch:
+- The app is built and tested
+- Docker image is pushed to Docker Hub
+- Your Azure VM pulls the image and restarts the container
+
+### 2.4: Visit Your App
+Once the container is running, visit your Azure VM IP:
+```
+http://<your-vm-ip>
+```
+Make sure your Node.js app listens on port `3000`, and Docker exposes is as `-p 80:3000`.
