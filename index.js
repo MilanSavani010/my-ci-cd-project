@@ -2,6 +2,11 @@ const express = require('express');
 const app = express();
 const port = 80;
 
+app.use((req, res, next) => {
+    console.log('Client IP:', req.ip);
+    next();
+});
+
 app.get('/', (req, res) => {
     res.send('Hello');
 });
