@@ -574,3 +574,92 @@ Once the container is running, visit your Azure VM IP:
 http://<your-vm-ip>
 ```
 Make sure your Node.js app listens on port `3000`, and Docker exposes is as `-p 80:3000`.
+
+# Step 7(Optional): Deployment Stage with Azure WebApp service
+## 1. Prepare Your Azure Web App
+
+**A. Create the Web App(if not done yet):**
+You can do this in the Azure Portal or CLI
+
+**Azure CLI:**
+```Bash
+az login 
+
+az group create --name milan-node-rg --location westeurope
+
+az provider register --namespace Microsoft.Web
+
+az appservice plan create --name milan-appservice-plan --resource-group milan-node-rg --sku FREE
+
+ az webapp list-runtimes --os-type windows
+
+az webapp create --name milan-node-webapp --resource-group milan-node-rg --plan milan-appservice-plan --runtime "NODE:18LTS"
+```
+
+## 2. Add Deployment Credentials to GitHub Secrets
+
+Go to GitHub → Your Repo → Settings → Secrets → Actions → Add the following:
+
+| Secret Name             | Description                   |
+| ----------------------- | ----------------------------- |
+| `AZURE_WEBAPP_NAME`     | e.g., `milan-node-webapp`     |
+| `AZURE_PUBLISH_PROFILE` | From Azure Portal (see below) |
+
+**To get the publish profile:**
+1. Go to your Azure Web App -> Overview
+2. Click "Get publish profile" -> Download it.
+3. Open it and copy the XML content. 
+4. Paste the whole content into GitHub Secret `AZURE_PUBLISH_PROFILE`.
+
+## 3. GitHub Actions Workflow for Azure Web App
+Add this to `.github/workflows/deploy.yml`:
+
+```yml
+name: Deploy Node.js to Azure Web App
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+
+      - name: Install dependencies
+        run: npm install
+
+      - name: Run tests
+        run: npm test
+
+      - name: Build app
+        run: npm run build || echo "no build script, skipping"
+
+      - name: Deploy to Azure Web App
+        uses: azure/webapps-deploy@v2
+        with:
+          app-name: ${{ secrets.AZURE_WEBAPP_NAME }}
+          publish-profile: ${{ secrets.AZURE_PUBLISH_PROFILE }}
+          package: .
+
+```
+
+**After deployment**
+- your app will be live at:
+```
+https://<your-webapp-name>.azurewebsites.net
+```
+- make sure your app listens on `process.env.PORT`:
+```js
+const port = process.env.PORT || 3000;
+app.listen(port, () => console.log(`App running on port ${port}`));
+```
