@@ -4,6 +4,8 @@ const cors = require('cors');
 const app = express();
 const port = process.env.PORT || 3000;
 
+const apikey = "1234567890abcdef1234567890abcdef";
+
 app.use(cors({origin:"*"}));
 
 app.use((req, res, next) => {
