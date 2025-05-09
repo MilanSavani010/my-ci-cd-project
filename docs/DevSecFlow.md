@@ -1,5 +1,6 @@
 ```mermaid
 graph TD
+    A0[Start] --> A
     A[Developer Commit] -->|Pre-Commit Hook| B{Gitleaks Secret Scan}
     B -->|Secrets Found| C[Block Commit<br>Show Report]
     B -->|No Secrets| D[Commit to Repository]
