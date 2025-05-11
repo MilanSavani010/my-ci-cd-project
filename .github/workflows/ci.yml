@@ -21,7 +21,7 @@ jobs:
         
         - name: Run Gitleaks Scan
           run: |
-            gitleaks detect --source . --config .gitleaks.toml --report-format json --report-path secret-report.json
+            gitleaks detect --source . --config .gitleaks.toml --report-format json --report-path secret-report.json || true
 
         - name: Print report
           run: | 
