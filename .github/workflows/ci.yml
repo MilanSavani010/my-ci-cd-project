@@ -20,7 +20,10 @@ jobs:
             mv gitleaks /usr/local/bin/
 
         - name: Scan for Secrets
-          run: gitleaks detect --source . --config .gitleaks.toml --report-format json --report-path secret-report.json
+          run:| 
+            gitleaks detect --source . --config .gitleaks.toml --report-format json --report-path secret-report.json
+            continue-on-error: true
+
 
         - name: Check for secrets
           run: |
