@@ -1,20 +1,25 @@
 title = "Gitleaks Configuration"
 
+# Rules for detecting secrets
 [[rules]]
+id = "aws-access-key"
 description = "AWS Access Key"
 regex = '''(AKIA[0-9A-Z]{16})'''
 tags = ["aws", "key"]
 
 [[rules]]
+id = "generic-password"
 description = "Generic Password"
 regex = '''(?i)password\s*[:=]\s*[^\s]{8,}'''
 tags = ["password"]
 
 [[rules]]
+id = "api-key"
 description = "API Key"
 regex = '''(?i)api[_-]?key\s*[:=]\s*[^\s]{16,}'''
 tags = ["api-key"]
 
+# Allowlist section to exclude specific files or patterns
 [allowlist]
 description = "Allowlisted files and patterns"
 paths = [
