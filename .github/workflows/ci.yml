@@ -14,26 +14,20 @@ jobs:
         - name: Checkout code
           uses: actions/checkout@v4
           
-        - name: Gitleaks
-          uses: gitleaks/gitleaks-action@v2.3.9
-          with:
-            config-path: .gitleaks.toml
-            report-path: secret-report.json
-            report-format: json
-
-        - name: Upload Artifacts
-          uses: actions/upload-artifact@v4
-          with:
-           name: secret-report
-           path: secret-report.json
-
-        
-        - name: Check for secrets
+        - name: Install Gitleaks
           run: |
-            if [ -s secret-report.json ] && [ "$(jq '. | length' secret-report.json)" -gt 0 ]; then
-              echo "Secrets found in code. Aborting pipeline."
-              cat secret-report.json
-              exit 1
-            fi
+            curl -sSL https://github.com/gitleaks/gitleaks/releases/latest/download/gitleaks-linux-amd64 -o gitleaks
+            chmod +x gitleaks
+            sudo mv gitleaks /usr/local/bin/
         
-        
+        - name: Run Gitleaks Scan
+          run: |
+            gitleaks detect --source . --config .gitleaks.toml --report-format json --report-path secret-report.json
+
+        - name: Upload Gitleaks Report
+          uses: actions/upload-artifact@v3
+          with:
+            name: gitleaks-report
+            path: secret-report.json
+
+
