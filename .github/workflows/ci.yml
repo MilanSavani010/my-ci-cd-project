@@ -21,8 +21,7 @@ jobs:
 
         - name: Scan for Secrets
           run:| 
-            gitleaks detect --source . --config .gitleaks.toml --report-format json --report-path secret-report.json
-          continue-on-error: true
+            gitleaks detect --source . --config .gitleaks.toml --report-format json --report-path secret-report.json || true
 
         - name: Check for secrets
           run: |
@@ -30,8 +29,8 @@ jobs:
               echo "Secrets found in code. Aborting pipeline."
               cat secret-report.json
               exit 1
-            fi
-          continue-on-error: true
+            fi || true
+          
 
             
         - name: Upload secret scan report
