@@ -12,25 +12,35 @@ jobs:
     
         steps:
         - name: Checkout code
-          uses: actions/checkout@v4
+          run: git clone https://github.com/${{ github.repository }} .
 
-        - name: Set up Node.js
-          uses: actions/setup-node@v4
-          with:
-            node-version: '18'
+        - name: Install Gitleaks
+          run: | 
+          curl -sSfL https://github.com/gitleaks/gitleaks/releases/download/v8.18.4/gitleaks_8.18.4_linux_x64.tar.gz | tar -xz
+          mv gitleaks /usr/local/bin/
+
+        - name: Scan for Secrets
+          run: gitleaks detect --source . --config .gitleaks.toml --report-format json --report-path secret-report.json
+
+        - name: Check for secrets
+          run: |
+            if [ -s secret-report.json ] && [ "$(jq '. | length' secret-report.json)" -gt 0 ]; then
+              echo "Secrets found in code. Aborting pipeline."
+              cat secret-report.json
+              exit 1
+            fi
+        - name: Upload secret scan report
+          run: |
+            mkdir -p artifacts
+            mv secret-report.json artifacts/
+            tar -czf secret-report.tar.gz -C artifacts .
+            echo "ARTIFACT_PATH=secret-report.tar.gz" >> $GITHUB_ENV
+          
+          - name: Upload artifact
+          run: |
+            curl -s -u ${{ github.actor }}:${{ secrets.PAT_TOKEN }} \
+              -H "Accept: application/vnd.github.v3+json" \
+              -T ${{ env.ARTIFACT_PATH }} \
+              https://uploads.github.com/repos/${{ github.repository }}/actions/artifacts/${{ github.run_id }}/tar.gz
+
         
-        - name: Install dependencies
-          run: npm install
-
-        - name: Run build step
-          run: npm run build
-
-        - name: Run tests
-          run: npm test
-        
-        - name: Deploy to Azure Web App
-          uses: azure/webapps-deploy@v2
-          with:
-           app-name: ${{ secrets.AZURE_WEBAPP_NAME }}
-           publish-profile: ${{ secrets.AZURE_PUBLISH_PROFILE }}
-           package: .

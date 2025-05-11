@@ -4,7 +4,10 @@ const cors = require('cors');
 const app = express();
 const port = process.env.PORT || 3000;
 
-const apikey1 = "1234567890abcdef1234567890abcdef";
+const apikey = "1234567890abcdef1234567890abcdef";
+const password = "SecretPass123!";
+const aws = "AKIA1234567890ABCD";
+
 
 app.use(cors({origin:"*"}));
 

@@ -1,0 +1,27 @@
+title = "Gitleaks Configuration"
+
+[[rules]]
+description = "AWS Access Key"
+regex = '''(AKIA[0-9A-Z]{16})'''
+tags = ["aws", "key"]
+
+[[rules]]
+description = "Generic Password"
+regex = '''(?i)password\s*[:=]\s*[^\s]{8,}'''
+tags = ["password"]
+
+[[rules]]
+description = "API Key"
+regex = '''(?i)api[_-]?key\s*[:=]\s*[^\s]{16,}'''
+tags = ["api-key"]
+
+[allowlist]
+description = "Allowlisted files and patterns"
+paths = [
+  '''\.lock$''',  # Ignore lock files
+  '''node_modules/''',
+  '''dist/'''
+]
+regexes = [
+  '''example-key''',  # Allow specific patterns
+]
