@@ -30,7 +30,7 @@ jobs:
             name: gitleaks-report
             path: ${{ env.ARTIFACT_PATH }}
 
-        - name: Check for formats
+        - name: Check for Secrets
           run: |
            if [ -s secret-report.json ] && [ "$(jq '. | length' secret-report.json)" -gt 0 ]; then
               echo "Secrets found in code. Aborting pipeline."
