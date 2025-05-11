@@ -29,6 +29,7 @@ jobs:
               cat secret-report.json
               exit 1
             fi
+            
         - name: Upload secret scan report
           run: |
             mkdir -p artifacts
@@ -36,7 +37,7 @@ jobs:
             tar -czf secret-report.tar.gz -C artifacts .
             echo "ARTIFACT_PATH=secret-report.tar.gz" >> $GITHUB_ENV
           
-          - name: Upload artifact
+        - name: Upload artifact
           run: |
             curl -s -u ${{ github.actor }}:${{ secrets.PAT_TOKEN }} \
               -H "Accept: application/vnd.github.v3+json" \
