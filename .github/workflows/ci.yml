@@ -24,10 +24,8 @@ jobs:
           run: |
             gitleaks detect --source . --config .gitleaks.toml --report-format json --report-path secret-report.json
 
-        - name: Upload Gitleaks Report
-          uses: actions/upload-artifact@v3
-          with:
-            name: gitleaks-report
-            path: secret-report.json
+        - name: Print report
+          run: | 
+            cat secret-report.json 
 
 
