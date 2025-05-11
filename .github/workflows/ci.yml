@@ -22,8 +22,7 @@ jobs:
         - name: Scan for Secrets
           run:| 
             gitleaks detect --source . --config .gitleaks.toml --report-format json --report-path secret-report.json
-            continue-on-error: true
-
+          continue-on-error: true
 
         - name: Check for secrets
           run: |
@@ -32,7 +31,7 @@ jobs:
               cat secret-report.json
               exit 1
             fi
-            continue-on-error: true
+          continue-on-error: true
 
             
         - name: Upload secret scan report
