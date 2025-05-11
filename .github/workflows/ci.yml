@@ -23,10 +23,6 @@ jobs:
           run: |
             gitleaks detect --source . --config .gitleaks.toml --report-format json --report-path secret-report.json || true
 
-        - name: Print report
-          run: | 
-            cat secret-report.json 
-
         - name: Upload secret scan report
           run: |
             mkdir -p artifacts
@@ -34,9 +30,11 @@ jobs:
             tar -czf secret-report.tar.gz -C artifacts .
             echo "ARTIFACT_PATH=secret-report.tar.gz" >> $GITHUB_ENV
 
-        - name: Upload artifact
-          run: |
-            curl -s -u ${{ github.actor }}:${{ secrets.TOKEN }} \
-              -H "Accept: application/vnd.github.v3+json" \
-              -T ${{ env.ARTIFACT_PATH }} \
-              https://uploads.github.com/repos/${{ github.repository }}/actions/artifacts/${{ github.run_id }}/tar.gz
+       
+        - name: Upload Gitleaks Report as tar.gz
+          uses: actions/upload-artifact@v3
+          with:
+            name: gitleaks-report
+            path: ${{ env.ARTIFACT_PATH }}
+
+
