@@ -22,15 +22,7 @@ jobs:
         - name: Run Gitleaks Scan
           run: |
             gitleaks detect --source . --config .gitleaks.toml --report-format json --report-path secret-report.json || true
-
-        - name: Upload secret scan report
-          run: |
-            mkdir -p artifacts
-            mv secret-report.json artifacts/
-            tar -czf secret-report.tar.gz -C artifacts .
-            echo "ARTIFACT_PATH=secret-report.tar.gz" >> $GITHUB_ENV
-
-       
+     
         - name: Upload Gitleaks Report as tar.gz
           uses: actions/upload-artifact@v4
           with:
