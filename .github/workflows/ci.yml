@@ -2,12 +2,12 @@ name: CI Pipeline - Node.js with Docker
 
 on:
     push:
-        branches: ["main"]
+        branches: []
     pull_request:
         branches: ["main"]
 
 jobs:
-    build: 
+    secret-scanning: 
         runs-on: ubuntu-latest
     
         steps:
@@ -37,4 +37,40 @@ jobs:
               cat secret-report.json
               exit 1
            fi
+    
+    APP:
+      needs: secret-scanning
+      runs-on: ubuntu-latest
+      
+      steps:
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
 
+      - name: Install dependencies
+        run: npm Install
+
+      - name: Lint code
+        run: npm run lint
+      
+      - name: Run tests
+        run: npm test
+
+      - name: Build
+        run: npm run build
+
+      - name: SAST with Semgrep
+        run: |
+          pip install Semgrep
+          semgrep --config=auto --json > sast-report.json
+          echo "ARTIFACT_PATH=sast-report.json" >> $GITHUB_ENV
+      
+      - name: Upload Sast Report as tar.gz
+        uses: actions/upload-artifact@v4
+        with:
+            name: sast-report
+            path: ${{ env.ARTIFACT_PATH }}
+  
+
+    
