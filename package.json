@@ -6,7 +6,8 @@
   "directories": {
     "doc": "docs",
     "test": "tests",
-    "start": "node index.js"
+    "start": "node index.js",
+    "lint": "eslint ."
   },
   "dependencies": {
     "accepts": "^2.0.0",
@@ -260,8 +261,9 @@
     "yargs-parser": "^21.1.1",
     "yocto-queue": "^0.1.0"
   },
-  "devDependencies": {},
   "scripts": {
+    "start": "node index.js",
+    "lint": "eslint .",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "repository": {
@@ -275,5 +277,8 @@
   "bugs": {
     "url": "https://github.com/MilanSavani010/my-ci-cd-project/issues"
   },
-  "homepage": "https://github.com/MilanSavani010/my-ci-cd-project#readme"
+  "homepage": "https://github.com/MilanSavani010/my-ci-cd-project#readme",
+  "devDependencies": {
+    "eslint": "^9.26.0"
+  }
 }
