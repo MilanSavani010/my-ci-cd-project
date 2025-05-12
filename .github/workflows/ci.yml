@@ -45,18 +45,13 @@ jobs:
  
       
       steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
       - name: Set up Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: '18'
-      
-      - name: pwd
-        run: |
-          pwd
-          ls -a
-          cd ..
-          ls -a
-    
+          node-version: '18'   
 
       - name: Install dependencies
         run: npm install
