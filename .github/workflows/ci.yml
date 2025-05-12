@@ -41,6 +41,7 @@ jobs:
     APP:
       needs: secret-scanning
       runs-on: ubuntu-latest
+     
  
       
       steps:
@@ -50,7 +51,11 @@ jobs:
           node-version: '18'
       
       - name: pwd
-        run: pwd
+        run: |
+          pwd
+          ls -a
+          cd ..
+          ls -a
     
 
       - name: Install dependencies
