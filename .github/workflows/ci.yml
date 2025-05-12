@@ -48,9 +48,6 @@ jobs:
         with:
           node-version: '18'
       
-      - name: Init npm
-        run: npm init -y
-
       - name: Install dependencies
         run: npm install
 
