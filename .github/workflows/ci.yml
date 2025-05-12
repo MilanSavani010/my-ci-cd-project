@@ -50,7 +50,7 @@ jobs:
           node-version: '18'
       
       - name: pwd
-        run: ls -R
+        run: pwd
     
 
       - name: Install dependencies
