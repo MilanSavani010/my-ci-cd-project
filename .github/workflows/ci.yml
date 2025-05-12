@@ -41,9 +41,7 @@ jobs:
     APP:
       needs: secret-scanning
       runs-on: ubuntu-latest
-      defaults:
-      run:
-        working-directory: .
+ 
       
       steps:
       - name: Set up Node.js
@@ -51,6 +49,10 @@ jobs:
         with:
           node-version: '18'
       
+      - name: pwd
+        run: ls -R
+    
+
       - name: Install dependencies
         run: npm install
       
