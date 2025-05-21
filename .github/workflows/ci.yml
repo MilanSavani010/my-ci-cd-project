@@ -59,6 +59,7 @@ jobs:
 
       - name: SAST with Semgrep
         run: |
+          apt install -y python3-pip
           pip3 install Semgrep
           semgrep --config=auto --json > sast-report.json
           echo "ARTIFACT_PATH=sast-report.json" >> $GITHUB_ENV
