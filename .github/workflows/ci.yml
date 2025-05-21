@@ -37,7 +37,7 @@ jobs:
     APP:
       needs: secret-scanning
       runs-on: self-hosted
-    
+
       steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -58,7 +58,7 @@ jobs:
 
       - name: SAST with Semgrep
         run: |
-          pip install Semgrep
+          pip3 install Semgrep
           semgrep --config=auto --json > sast-report.json
           echo "ARTIFACT_PATH=sast-report.json" >> $GITHUB_ENV
       
