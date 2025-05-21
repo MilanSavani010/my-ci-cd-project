@@ -14,25 +14,18 @@ jobs:
         - name: Checkout code
           uses: actions/checkout@v4
           
-        - name: Install Gitleaks
-          run: |
-            echo "$(pwd):/repo"
-            mkdir -p ~/bin
-            curl -sSfL https://github.com/gitleaks/gitleaks/releases/download/v8.18.4/gitleaks_8.18.4_linux_x64.tar.gz | tar -xz
-            mv gitleaks ~/bin/
-            echo "$HOME/bin" >> $GITHUB_PATH
-
         
-        - name: Run Gitleaks Scan
+
+        - name: Run Gitleaks Scan in Docker
           run: |
-            gitleaks detect --source . --config .gitleaks.toml --report-format json --report-path secret-report.json || true
-            echo "ARTIFACT_PATH=secret-report.json" >> $GITHUB_ENV
-          
+            docker run --rm -v $(pwd):/repo zricethezav/gitleaks:latest detect --source /repo --config /repo/.gitleaks.toml --report-format json --report-path /repo/secret-report.json || true
+        
         - name: Upload Gitleaks Report as tar.gz
           uses: actions/upload-artifact@v4
           with:
             name: gitleaks-report
-            path: ${{ env.ARTIFACT_PATH }}
+            path: secret-report.json
+
 
         
     APP:
