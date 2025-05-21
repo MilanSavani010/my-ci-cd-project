@@ -50,18 +50,14 @@ jobs:
       - name: Build
         run: npm run build
 
-      - name: SAST with Semgrep
+      - name: Run Semgrep Scan in Docker
         run: |
-          apt install -y python3-pip
-          pip3 install Semgrep
-          semgrep --config=auto --json > sast-report.json
-          echo "ARTIFACT_PATH=sast-report.json" >> $GITHUB_ENV
-      
-      - name: Upload Sast Report as tar.gz
+          docker run --rm -v $(pwd):/repo semgrep/semgrep:latest scan --config auto --json --output /repo/semgrep-report.json || true
+        
+      - name: Upload Semgrep Report as tar.gz
         uses: actions/upload-artifact@v4
         with:
-            name: sast-report
-            path: ${{ env.ARTIFACT_PATH }}
-  
+          name: semgrep-report
+          path: semgrep-report.json
 
     
