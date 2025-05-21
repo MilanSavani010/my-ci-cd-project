@@ -58,6 +58,6 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: semgrep-report
-          path: semgrep-report.json
+          path: /repo/semgrep-report.json
 
     
