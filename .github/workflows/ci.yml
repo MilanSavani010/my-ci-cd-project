@@ -52,12 +52,12 @@ jobs:
 
       - name: Run Semgrep Scan in Docker
         run: |
-          docker run --rm -v $(pwd):/repo --user $(id -u):$(id -g) semgrep/semgrep:latest  semgrep scan --config auto --json --output /repo/semgrep-report.json || true
+          docker run --rm -v $(pwd):/repo --user $(id -u):$(id -g) semgrep/semgrep:latest  semgrep scan --config auto --json --output semgrep-report.json || true
         
       - name: Upload Semgrep Report as tar.gz
         uses: actions/upload-artifact@v4
         with:
           name: semgrep-report
-          path: /repo/semgrep-report.json
+          path: semgrep-report.json
 
     
