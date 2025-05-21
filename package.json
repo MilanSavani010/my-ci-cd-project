@@ -264,7 +264,8 @@
   "scripts": {
     "start": "node index.js",
     "lint": "eslint .",
-    "test": "jest ./tests"
+    "test": "jest ./tests",
+    "build": "echo \"No build step necessary\""
   },
   "repository": {
     "type": "git",
@@ -279,6 +280,14 @@
   },
   "homepage": "https://github.com/MilanSavani010/my-ci-cd-project#readme",
   "devDependencies": {
-    "eslint": "^9.26.0"
+    "@babel/core": "^7.27.1",
+    "@babel/preset-env": "^7.27.2",
+    "babel-loader": "^10.0.0",
+    "eslint": "^9.26.0",
+    "prettier": "^3.5.3",
+    "ts-loader": "^9.5.2",
+    "typescript": "^5.8.3",
+    "webpack": "^5.99.8",
+    "webpack-cli": "^6.0.1"
   }
 }
