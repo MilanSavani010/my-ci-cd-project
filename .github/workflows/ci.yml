@@ -8,13 +8,13 @@ on:
 
 jobs:
     secret-scanning: 
-        runs-on: ubuntu-latest
+        runs-on: self-hosted
     
         steps:
         - name: Checkout code
           uses: actions/checkout@v4
           
-        
+    
 
         - name: Run Gitleaks Scan in Docker
           run: |
@@ -30,7 +30,7 @@ jobs:
         
     APP:
       needs: secret-scanning
-      runs-on: ubuntu-latest
+      runs-on: self-hosted
 
       steps:
       - name: Checkout code
