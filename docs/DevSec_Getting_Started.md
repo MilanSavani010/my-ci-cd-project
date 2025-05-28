@@ -63,7 +63,6 @@ graph TD
 ```
 
 
-```yml
     name : CI/CD with Comprehensive Security
 
     on:
