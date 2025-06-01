@@ -8,7 +8,7 @@ on:
 
 jobs:
     secret-scanning: 
-        runs-on: ubuntu-latest
+        runs-on: self-hosted
     
         steps:
         - name: Checkout code
@@ -30,7 +30,7 @@ jobs:
         
     APP:
       needs: secret-scanning
-      runs-on: ubuntu-latest
+      runs-on: self-hosted
 
       steps:
       - name: Checkout code
